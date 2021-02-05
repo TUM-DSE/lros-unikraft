@@ -1,0 +1,9 @@
+config LIBVACCELRT
+	bool "vaccelrt: Vaccel runtime system library"
+	select LIBVIRTIO_ACCEL
+	select LIBVFSCORE
+	select LIBDEVFS
+	select LIBDEVFS_AUTOMOUNT
+	default n
+	help
+		Runtime system library for vaccel applications
