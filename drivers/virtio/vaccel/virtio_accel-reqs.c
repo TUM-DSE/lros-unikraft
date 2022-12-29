@@ -103,7 +103,7 @@ free_in:
 	return ret;
 }
 
-int virtaccel_req_gen_operation(struct virtio_accel_req *req)
+int virtaccel_req_operation(struct virtio_accel_req *req)
 {
 	struct virtio_accel *vaccel = req->vaccel;
 	struct virtio_accel_hdr *h = &req->hdr;
@@ -118,7 +118,7 @@ int virtaccel_req_gen_operation(struct virtio_accel_req *req)
 	return ret;
 }
 
-int virtaccel_req_gen_destroy_session(struct virtio_accel_req *req)
+int virtaccel_req_destroy_session(struct virtio_accel_req *req)
 {
 	struct virtio_accel *vaccel = req->vaccel;
 	struct virtio_accel_hdr *h = &req->hdr;
@@ -133,7 +133,7 @@ int virtaccel_req_gen_destroy_session(struct virtio_accel_req *req)
 	return ret;
 }
 
-int virtaccel_req_gen_create_session(struct virtio_accel_req *req)
+int virtaccel_req_create_session(struct virtio_accel_req *req)
 {
 	struct virtio_accel *vaccel = req->vaccel;
 	struct virtio_accel_hdr *h = &req->hdr;
@@ -143,7 +143,7 @@ int virtaccel_req_gen_create_session(struct virtio_accel_req *req)
 	ret = virtaccel_prepare_request(VIRTIO_ACCEL_CREATE_SESSION, h, sess);
 	if (ret < 0)
 		return ret;
-	ret = vaccel_send_request(vaccel, h, req, sess->id);
+	ret = vaccel_send_request(vaccel, h, req, &(sess->id));
 	return ret;
 }
 
@@ -168,7 +168,7 @@ void virtaccel_handle_req_result(struct virtio_accel_req *req)
 	int ret;
 
 	if (req->status != VIRTIO_ACCEL_OK) {
-		uk_pr_err("request status not ok\n");
+		uk_pr_err("request status not ok %d\n", req->status);
 		return;
 	}
 

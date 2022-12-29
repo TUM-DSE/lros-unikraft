@@ -153,7 +153,7 @@ out_unlock:
 }
 
 int vaccel_send_request(struct virtio_accel *vaccel, struct virtio_accel_hdr *h, 
-			struct virtio_accel_req *req, __u32 sid)
+			struct virtio_accel_req *req, __u32 *sid)
 {
 	struct virtio_accel_vq *vaccelq = vaccel->vq;
 	size_t in_segs = 0, out_segs = 0;
@@ -215,7 +215,7 @@ int vaccel_send_request(struct virtio_accel *vaccel, struct virtio_accel_hdr *h,
 		}
 		in_segs++;
 	}
-	ret = uk_sglist_append(&vaccelq->sg, &sid, sizeof(__u32));
+	ret = uk_sglist_append(&vaccelq->sg, sid, sizeof(__u32));
 	if (ret < 0) {
 		uk_pr_err("failed to append session id in sg\n");
 		goto out_unlock;

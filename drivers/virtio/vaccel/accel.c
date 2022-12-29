@@ -37,17 +37,17 @@ int dev_accel_ioctl(struct device *dev, unsigned long cmd, void *arg)
 
 	switch(cmd) {
 	case VACCEL_SESS_CREATE:
-		ret = virtaccel_req_gen_create_session(req);
+		ret = virtaccel_req_create_session(req);
 		if (ret < 0)
 			goto err_req;
 		break;
 	case VACCEL_SESS_DESTROY:
-		ret = virtaccel_req_gen_destroy_session(req);
+		ret = virtaccel_req_destroy_session(req);
 		if (ret < 0)
 			goto err_req;
 		break;
 	case VACCEL_DO_OP:
-		ret = virtaccel_req_gen_operation(req);
+		ret = virtaccel_req_operation(req);
 		if (ret != -EINPROGRESS)
 			goto err_req;
 
