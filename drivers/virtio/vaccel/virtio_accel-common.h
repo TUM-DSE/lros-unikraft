@@ -3,7 +3,7 @@
 
 #include <uk/sglist.h>
 #include <sys/types.h>
-#include <uk/arch/spinlock.h>
+#include <uk/plat/spinlock.h>
 #include <uk/wait.h>
 #include "virtio_accel.h"
 
@@ -15,7 +15,7 @@ struct virtio_accel_vq {
 	struct virtqueue *vq;
 	struct uk_sglist sg;
 	struct uk_sglist_seg sgsegs[VQ_SGSEGS];
-	spinlock_t lock;
+	__spinlock lock;
 };
 
 struct virtio_accel {

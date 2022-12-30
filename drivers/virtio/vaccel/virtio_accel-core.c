@@ -336,7 +336,7 @@ static int virtaccel_init_vqs(struct virtio_accel *vaccel)
 	if (ret)
 		goto err_free;
 
-	ukarch_spin_lock_init(vaccel->vq->lock);
+	ukarch_spin_init(vaccel->vq->lock);
 	return 0;
 
 err_free:
