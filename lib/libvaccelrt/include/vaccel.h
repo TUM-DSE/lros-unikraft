@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "common.h"
+#include "error.h"
 #include "vaccel_ops.h"
 
 #ifdef __cplusplus
