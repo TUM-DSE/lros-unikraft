@@ -23,6 +23,37 @@ int virtio_noop(struct vaccel_session *sess)
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
 
+int virtio_sgemm(struct vaccel_session *sess, long long int m, long long int n,
+		long long int k, float alpha, float *a, long long int lda, float *b,
+		long long int ldb, float beta, float *c, long long int ldc)
+{
+	unsigned int op_type = VACCEL_BLAS_SGEMM;
+	struct accel_session vsess = { 0 };
+	struct accel_arg args[9] = {
+		{ sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
+		{ sizeof(m), (unsigned char *)&m, NULL, 0, {0} },
+		{ sizeof(n), (unsigned char *)&n, NULL, 0, {0} },
+		{ sizeof(k), (unsigned char *)&k, NULL, 0, {0} },
+		{ sizeof(alpha), (unsigned char *)&alpha, NULL, 0, {0} },
+		{ lda, (unsigned char *)a, NULL, 0, {0} },
+		{ ldb, (unsigned char *)b, NULL, 0, {0} },
+		{ sizeof(beta), (unsigned char *)&beta, NULL, 0, {0} },
+		{ ldc, (unsigned char *)c, NULL, 0, {0} },
+	};
+
+	vsess.id = sess->session_id;
+	vsess.op.out_nr = 8;
+	vsess.op.out = args;
+	vsess.op.in_nr = 1;
+	vsess.op.in = &args[8];
+
+	vaccel_debug("[virtio] session:%u Executing sgemm",
+			sess->session_id);
+
+	return dev_write(VACCEL_DO_OP, &vsess);
+}
+
+#if 0
 int virtio_sgemm(struct vaccel_session *sess, uint32_t k, uint32_t m,
 		uint32_t n, size_t len_a, size_t len_b, size_t len_c,
 		float *a, float *b, float *c)
@@ -50,6 +81,7 @@ int virtio_sgemm(struct vaccel_session *sess, uint32_t k, uint32_t m,
 
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
+#endif
 
 int virtio_image_classification(struct vaccel_session *sess, void *img,
 		unsigned char *out_text, unsigned char *out_imgname,

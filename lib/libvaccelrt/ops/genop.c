@@ -15,7 +15,7 @@
 #include "ops/genop.h"
 #include "ops/vaccel_ops.h"
 
-//#include "blas.h"
+#include "blas.h"
 //#include "minmax.h"
 //#include "exec.h"
 //#include "image.h"
@@ -36,7 +36,7 @@ typedef int (*unpack_func_t)(
 
 unpack_func_t callbacks[VACCEL_FUNCTIONS_NR] = {
 	vaccel_noop_unpack,			/* 0 */
-	//vaccel_sgemm_unpack,			/* 1 */
+	vaccel_sgemm_unpack,			/* 1 */
 	//vaccel_image_classification_unpack,	/* 2 */
 	//vaccel_image_detection_unpack,		/* 3 */
 	//vaccel_image_segmentation_unpack,	/* 4 */

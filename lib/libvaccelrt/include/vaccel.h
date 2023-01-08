@@ -9,5 +9,6 @@
 #include "ops/vaccel_ops.h"
 #include "ops/genop.h"
 #include "ops/noop.h"
+#include "ops/blas.h"
 
 #endif /* __VACCEL_H__ */
