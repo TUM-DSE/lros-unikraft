@@ -17,7 +17,7 @@
 //#include "plugin.h"
 #include "log.h"
 #include "vaccel_ops.h"
-//#include "genop.h"
+#include "genop.h"
 
 #include "session.h"
 #include "../operations.h"
