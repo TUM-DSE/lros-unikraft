@@ -6,6 +6,8 @@
 
 #include "error.h"
 #include "session.h"
-#include "vaccel_ops.h"
+#include "ops/vaccel_ops.h"
+#include "ops/genop.h"
+#include "ops/noop.h"
 
 #endif /* __VACCEL_H__ */
