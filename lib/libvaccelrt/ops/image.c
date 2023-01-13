@@ -40,7 +40,7 @@ static int vaccel_image_op(enum vaccel_op_type op_type, struct vaccel_session *s
 	if (!sess)
 		return VACCEL_EINVAL;
 
-	vaccel_info("session:%u Looking for plugin implementing %s",
+	vaccel_debug("session:%u Looking for plugin implementing %s",
 			sess->session_id, vaccel_op_type_str(op_type));
 
 	//vaccel_prof_region_start(&image_op_stats);
@@ -61,15 +61,10 @@ static int vaccel_image_op(enum vaccel_op_type op_type, struct vaccel_session *s
 		//ret = plugin_op(sess, img, out_text, out_imgname, len_img,
 		ret = virtio_image_op(op_type, sess, img, out_text, out_imgname, len_img,
 				len_out_text, len_out_imgname);
-#if 0
-		/*
-		 * TODO: We need to revisit this.
-		 */
 	} else {
 		//ret = plugin_op(sess, img, out_imgname, len_img,
-		ret = virtio_image_op(op_type, sess, img, out_imgname, len_img,
-				len_out_imgname);
-#endif
+		ret = virtio_image_op(op_type, sess, img, NULL, out_imgname, len_img,
+				0, len_out_imgname);
 	}
 
 //out:
