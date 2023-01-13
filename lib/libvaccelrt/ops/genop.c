@@ -39,7 +39,7 @@ unpack_func_t callbacks[VACCEL_FUNCTIONS_NR] = {
 	vaccel_sgemm_unpack,			/* 1 */
 	vaccel_image_classification_unpack,	/* 2 */
 	vaccel_image_detection_unpack,		/* 3 */
-	//vaccel_image_segmentation_unpack,	/* 4 */
+	vaccel_image_segmentation_unpack,	/* 4 */
 	//vaccel_image_pose_unpack,		/* 5 */
 	//vaccel_image_depth_unpack,		/* 6 */
 	//vaccel_exec_unpack,			/* 7 */
