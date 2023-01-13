@@ -21,6 +21,7 @@ int vaccel_sess_free(struct vaccel_session *sess)
 	return virtio_sess_free(sess);
 }
 
+#if 0
 int vaccel_image_classification(struct vaccel_session *sess, void *img,
 		unsigned char *out_text, unsigned char *out_imgname,
 		size_t len_img, size_t len_out_text, size_t len_out_imgname)
@@ -34,3 +35,4 @@ int vaccel_image_classification(struct vaccel_session *sess, void *img,
 	return virtio_image_classification(sess, img, out_text, out_imgname, len_img,
 			len_out_text, len_out_imgname);
 }
+#endif
