@@ -86,7 +86,48 @@ int virtio_image_op(enum vaccel_op_type op_type, struct vaccel_session *sess,
 
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
+#define virtio_image_op_no_text(op_type, sess, img, out_imgname, len_img, \
+		len_out_imgname) \
+		virtio_image_op(op_type, sess, img, NULL, out_imgname, \
+				len_img, 0, len_out_imgname)
 
+int virtio_image_classification(struct vaccel_session *sess, void *img,
+		unsigned char *out_text, unsigned char *out_imgname,
+		size_t len_img, size_t len_out_text, size_t len_out_imgname)
+{
+	return virtio_image_op(VACCEL_IMG_CLASS, sess, img, out_text,
+			out_imgname, len_img, len_out_text, len_out_imgname);
+}
+
+int virtio_image_detection(struct vaccel_session *sess, void *img,
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname)
+{
+	return virtio_image_op_no_text(VACCEL_IMG_DETEC, sess, img,
+			out_imgname, len_img, len_out_imgname);
+}
+
+int virtio_image_segmentation(struct vaccel_session *sess, void *img,
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname)
+{
+	return virtio_image_op_no_text(VACCEL_IMG_SEGME, sess, img,
+			out_imgname, len_img, len_out_imgname);
+}
+
+int virtio_image_depth(struct vaccel_session *sess, void *img,
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname)
+{
+	return virtio_image_op_no_text(VACCEL_IMG_DEPTH, sess, img,
+			out_imgname, len_img, len_out_imgname);
+}
+
+int virtio_image_pose(struct vaccel_session *sess, void *img,
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname)
+{
+	return virtio_image_op_no_text(VACCEL_IMG_POSE, sess, img,
+			out_imgname, len_img, len_out_imgname);
+}
+
+#if 0
 int virtio_image_classification(struct vaccel_session *sess, void *img,
 		unsigned char *out_text, unsigned char *out_imgname,
 		size_t len_img, size_t len_out_text, size_t len_out_imgname)
@@ -157,3 +198,4 @@ int virtio_image_segmentation(struct vaccel_session *sess, void *img,
 
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
+#endif

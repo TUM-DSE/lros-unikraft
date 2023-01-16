@@ -22,10 +22,15 @@ int virtio_image_classification(struct vaccel_session *sess, void *img,
 		size_t len_img,	size_t len_out_text, size_t len_out_imgname);
 
 int virtio_image_detection(struct vaccel_session *sess, void *img,
-		char *out_imgname, size_t len_img, size_t len_out_imgname);
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname);
 
 int virtio_image_segmentation(struct vaccel_session *sess, void *img,
-		char *out_imgname, size_t len_img, size_t len_out_imgname);
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname);
 
+int virtio_image_depth(struct vaccel_session *sess, void *img,
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname);
+
+int virtio_image_pose(struct vaccel_session *sess, void *img,
+		unsigned char *out_imgname, size_t len_img, size_t len_out_imgname);
 
 #endif /* __VACCEL_VIRTIO_OPERATIONS_H__ */
