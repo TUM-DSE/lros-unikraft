@@ -11,5 +11,6 @@
 #include "ops/noop.h"
 #include "ops/blas.h"
 #include "ops/image.h"
+#include "ops/exec.h"
 
 #endif /* __VACCEL_H__ */

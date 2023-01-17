@@ -31,7 +31,6 @@ int vaccel_sgemm(
 	float beta,
 	float *c, long long int ldc
 ) {
-	uk_pr_info("edw mphka\n");
 	if (!sess)
 		return VACCEL_EINVAL;
 

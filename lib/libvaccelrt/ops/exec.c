@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-#include "noop.h"
+#include "exec.h"
 #include "error.h"
 //#include "plugin.h"
 #include "log.h"
@@ -22,44 +22,45 @@
 #include "session.h"
 #include "../operations.h"
 
-int vaccel_noop(struct vaccel_session *sess)
+int vaccel_exec(struct vaccel_session *sess, const char *library,
+		const char *fn_symbol, struct vaccel_arg *read,
+		size_t nr_read, struct vaccel_arg *write, size_t nr_write)
 {
 	if (!sess)
 		return VACCEL_EINVAL;
 
-#if 0
-	vaccel_debug("session:%u Looking for plugin implementing noop",
+	vaccel_debug("session:%u Looking for plugin implementing exec",
 			sess->session_id);
 
+#if 0
 	/*
-	 * Plugins are not supported in Unikraft.
-	 * We need to think how we will handle that in the future
+	 * There is no support for vAccel plugins in Unikraft
 	 */
 	//Get implementation
-	int (*plugin_op)() = get_plugin_op(VACCEL_NO_OP);
+	int (*plugin_op)() = get_plugin_op(VACCEL_EXEC);
 	if (!plugin_op)
 		return VACCEL_ENOTSUP;
 
-	return plugin_op(sess);
 #endif
-	return virtio_noop(sess);
+	return virtio_exec(sess, library, fn_symbol, read, nr_read,
+			write, nr_write);
 }
 
-int vaccel_noop_unpack(struct vaccel_session *sess,
+int vaccel_exec_unpack(struct vaccel_session *sess,
 		struct vaccel_arg *read, int nr_read,
 		struct vaccel_arg *write, int nr_write)
 {
-	if (nr_read || read) {
-		vaccel_error("Wrong number of read arguments in noop: %d",
+	if (nr_read < 2) {
+		vaccel_error("Wrong number of read arguments in exec: %d",
 				nr_read);
 		return VACCEL_EINVAL;
 	}
 
-	if (nr_write || write) {
-		vaccel_error("Wrong number of write arguments in noop: %d",
-				nr_write);
-		return VACCEL_EINVAL;
-	}
+	/* Pop the first two arguments */
+	char *library = (char *)read[0].buf;
+	char *fn_symbol = (char *)read[1].buf;
 
-	return vaccel_noop(sess);
+	/* Pass on the rest of the read and all write arguments */
+	return vaccel_exec(sess, library, fn_symbol, &read[2],
+			nr_read - 2, write, nr_write);
 }

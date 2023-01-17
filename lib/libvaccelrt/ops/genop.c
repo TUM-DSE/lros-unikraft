@@ -17,7 +17,7 @@
 
 #include "blas.h"
 //#include "minmax.h"
-//#include "exec.h"
+#include "exec.h"
 #include "image.h"
 #include "noop.h"
 //#include "fpga.h"
@@ -42,7 +42,7 @@ unpack_func_t callbacks[VACCEL_FUNCTIONS_NR] = {
 	vaccel_image_segmentation_unpack,	/* 4 */
 	vaccel_image_pose_unpack,		/* 5 */
 	vaccel_image_depth_unpack,		/* 6 */
-	//vaccel_exec_unpack,			/* 7 */
+	vaccel_exec_unpack,			/* 7 */
 	//vaccel_noop_unpack,			/* 8 */
 	//vaccel_noop_unpack,			/* 9 */
 	//vaccel_noop_unpack,			/* 10 */

@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <sys/ioctl.h>
 #include <accel.h>
+#include <string.h>
 
 #include "ioctl.h"
 #include "log.h"
@@ -125,6 +126,56 @@ int virtio_image_pose(struct vaccel_session *sess, void *img,
 {
 	return virtio_image_op_no_text(VACCEL_IMG_POSE, sess, img,
 			out_imgname, len_img, len_out_imgname);
+}
+
+int virtio_exec(struct vaccel_session *sess, const char *library, const char
+		*fn_symbol, void *out_args, size_t out_nargs, void *in_args,
+		size_t in_nargs)
+{
+        enum vaccel_op_type op_type = VACCEL_EXEC;
+        struct accel_session vsess = { 0 };
+        struct accel_arg args[out_nargs + in_nargs + 3];
+        int i = 0, idx = 0;
+
+        /* pass VACCEL_EXEC */
+        args[idx].len = sizeof(op_type);
+        args[idx].buf = (unsigned char*)&op_type;
+	idx++;
+
+        /* pass first argument */
+        args[idx].len = strlen(library);
+        args[idx].buf = (unsigned char*)library;
+	idx++;
+
+        /* pass second argument */
+        args[idx].len = strlen(fn_symbol);
+        args[idx].buf = (unsigned char*)fn_symbol;
+	idx++;
+
+        /* pass the rest of the read-only arguments */
+        for (i = 0; i < (int)out_nargs ;i++){
+                args[idx].len = ((struct accel_arg*)out_args)[i].len;
+                args[idx].buf = ((struct accel_arg*)out_args)[i].buf;
+		idx++;
+        }
+
+        /* pass the write-only arguments */
+        for (i =0; i < (int)in_nargs;i++){
+                args[idx].len = ((struct accel_arg*)in_args)[i].len;
+                args[idx].buf = ((struct accel_arg*)in_args)[i].buf;
+		idx++;
+        }
+ 	
+        vsess.id = sess->session_id;
+        vsess.op.out_nr = out_nargs + 3; /* Read-only args; */
+        vsess.op.out = &args[0];
+        vsess.op.in_nr = in_nargs; /* Write-only args; */
+        vsess.op.in = &args[out_nargs + 3];
+
+        vaccel_debug("[virtio] session:%u Executing exec",
+                        sess->session_id);
+
+        return dev_write(VACCEL_DO_OP, &vsess);
 }
 
 #if 0
