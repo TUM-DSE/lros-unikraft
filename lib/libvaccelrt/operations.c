@@ -54,6 +54,37 @@ int virtio_sgemm(struct vaccel_session *sess, long long int m, long long int n,
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
 
+int virtio_minmax(
+	struct vaccel_session *sess,
+	const double *indata, int ndata,
+	int low_threshold, int high_threshold,
+	double *out_data, double *min, double *max)
+{
+	enum vaccel_op_type op_type = VACCEL_MINMAX;
+	struct accel_session vsess = { 0 };
+	struct accel_arg args[8] = {
+		{ sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
+		{ ndata * sizeof(double), (unsigned char*)indata, NULL, 0, {0} },
+		{ sizeof(int), (unsigned char*)&ndata, NULL, 0, {0} },
+		{ sizeof(int), (unsigned char*)&low_threshold, NULL, 0, {0} },
+		{ sizeof(int), (unsigned char*)&high_threshold, NULL, 0, {0} },
+		{ sizeof(double), (unsigned char*)out_data, NULL, 0, {0} },
+		{ sizeof(double), (unsigned char*)min, NULL, 0, {0} },
+		{ sizeof(double), (unsigned char*)max, NULL, 0, {0} },
+	};
+
+	vsess.id = sess->session_id;
+	vsess.op.out_nr = 5;
+	vsess.op.out = args;
+	vsess.op.in_nr = 3;
+	vsess.op.in = &args[5];
+
+	vaccel_debug("[virtio] session:%u Executing minmax",
+			sess->session_id);
+
+	return dev_write(VACCEL_DO_OP, &vsess);
+}
+
 int virtio_image_op(enum vaccel_op_type op_type, struct vaccel_session *sess,
 		const void *img, unsigned char *out_text, unsigned char *out_imgname,
 		size_t len_img, size_t len_out_text, size_t len_out_imgname)

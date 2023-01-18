@@ -16,7 +16,7 @@
 #include "ops/vaccel_ops.h"
 
 #include "blas.h"
-//#include "minmax.h"
+#include "minmax.h"
 #include "exec.h"
 #include "image.h"
 #include "noop.h"
@@ -43,14 +43,14 @@ unpack_func_t callbacks[VACCEL_FUNCTIONS_NR] = {
 	vaccel_image_pose_unpack,		/* 5 */
 	vaccel_image_depth_unpack,		/* 6 */
 	vaccel_exec_unpack,			/* 7 */
-	//vaccel_noop_unpack,			/* 8 */
-	//vaccel_noop_unpack,			/* 9 */
-	//vaccel_noop_unpack,			/* 10 */
-	//vaccel_noop_unpack,			/* 11 */
-	//vaccel_noop_unpack,			/* 12 */
-	//vaccel_noop_unpack,			/* 13 */
-	//vaccel_noop_unpack,			/* 14 */
-	//vaccel_minmax_unpack,			/* 15 */
+	vaccel_noop_unpack,			/* 8 */
+	vaccel_noop_unpack,			/* 9 */
+	vaccel_noop_unpack,			/* 10 */
+	vaccel_noop_unpack,			/* 11 */
+	vaccel_noop_unpack,			/* 12 */
+	vaccel_noop_unpack,			/* 13 */
+	vaccel_noop_unpack,			/* 14 */
+	vaccel_minmax_unpack,			/* 15 */
 	//vaccel_fpga_arraycopy_unpack,		/* 16 */
 	//vaccel_fpga_mmult_unpack,		/* 17 */
 	//vaccel_fpga_parallel_unpack,		/* 18 */
