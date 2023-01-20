@@ -185,15 +185,15 @@ int virtio_exec(struct vaccel_session *sess, const char *library, const char
 
         /* pass the rest of the read-only arguments */
         for (i = 0; i < (int)out_nargs ;i++){
-                args[idx].len = ((struct accel_arg*)out_args)[i].len;
-                args[idx].buf = ((struct accel_arg*)out_args)[i].buf;
+                args[idx].len = ((struct vaccel_arg*)out_args)[i].size;
+                args[idx].buf = ((struct vaccel_arg*)out_args)[i].buf;
 		idx++;
         }
 
         /* pass the write-only arguments */
         for (i =0; i < (int)in_nargs;i++){
-                args[idx].len = ((struct accel_arg*)in_args)[i].len;
-                args[idx].buf = ((struct accel_arg*)in_args)[i].buf;
+                args[idx].len = ((struct vaccel_arg*)in_args)[i].size;
+                args[idx].buf = ((struct vaccel_arg*)in_args)[i].buf;
 		idx++;
         }
  	
