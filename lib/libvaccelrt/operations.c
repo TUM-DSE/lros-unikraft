@@ -24,11 +24,11 @@ int virtio_noop(struct vaccel_session *sess)
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
 
-int virtio_sgemm(struct vaccel_session *sess, long long int m, long long int n,
-		long long int k, float alpha, float *a, long long int lda, float *b,
-		long long int ldb, float beta, float *c, long long int ldc)
+int virtio_sgemm(struct vaccel_session *sess, uint32_t m, uint32_t n, uint32_t k,
+		float alpha, float *a, size_t len_a __unused, float *b,
+		size_t len_b __unused, float beta, float *c, size_t len_c __unused)
 {
-	unsigned int op_type = VACCEL_BLAS_SGEMM;
+	enum vaccel_op_type op_type = VACCEL_BLAS_SGEMM;
 	struct accel_session vsess = { 0 };
 	struct accel_arg args[9] = {
 		{ sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
@@ -36,10 +36,10 @@ int virtio_sgemm(struct vaccel_session *sess, long long int m, long long int n,
 		{ sizeof(n), (unsigned char *)&n, NULL, 0, {0} },
 		{ sizeof(k), (unsigned char *)&k, NULL, 0, {0} },
 		{ sizeof(alpha), (unsigned char *)&alpha, NULL, 0, {0} },
-		{ lda, (unsigned char *)a, NULL, 0, {0} },
-		{ ldb, (unsigned char *)b, NULL, 0, {0} },
+		{ m*k*sizeof(float), (unsigned char *)a, NULL, 0, {0} },
+		{ n*k*sizeof(float), (unsigned char *)b, NULL, 0, {0} },
 		{ sizeof(beta), (unsigned char *)&beta, NULL, 0, {0} },
-		{ ldc, (unsigned char *)c, NULL, 0, {0} },
+		{ m*n*sizeof(float), (unsigned char *)c, NULL, 0, {0} },
 	};
 
 	vsess.id = sess->session_id;

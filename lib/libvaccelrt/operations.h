@@ -7,9 +7,9 @@
 struct vaccel_session;
 
 int virtio_noop(struct vaccel_session *sess);
-int virtio_sgemm(struct vaccel_session *sess, long long int m, long long int n,
-		long long int k, float alpha, float *a, long long int lda, float *b,
-		long long int ldb, float beta, float *c, long long int ldc);
+int virtio_sgemm(struct vaccel_session *sess, uint32_t m, uint32_t n, uint32_t k,
+		float alpha, float *a, size_t len_a __unused, float *b,
+		size_t len_b __unused, float beta, float *c, size_t len_c __unused);
 int virtio_minmax(
 	struct vaccel_session *sess,
 	const double *indata, int ndata,
