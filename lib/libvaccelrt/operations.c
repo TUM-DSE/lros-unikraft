@@ -68,7 +68,7 @@ int virtio_minmax(
 		{ sizeof(int), (unsigned char*)&ndata, NULL, 0, {0} },
 		{ sizeof(int), (unsigned char*)&low_threshold, NULL, 0, {0} },
 		{ sizeof(int), (unsigned char*)&high_threshold, NULL, 0, {0} },
-		{ sizeof(double), (unsigned char*)out_data, NULL, 0, {0} },
+		{ ndata * sizeof(double), (unsigned char*)out_data, NULL, 0, {0} },
 		{ sizeof(double), (unsigned char*)min, NULL, 0, {0} },
 		{ sizeof(double), (unsigned char*)max, NULL, 0, {0} },
 	};
