@@ -35,8 +35,8 @@ ENTRY(pprocess_signal_jmp_handler)
 	 * Save uk sysctx                                                    *
 	 *───────────────────────────────────────────────────────────────────*/
 	sub sp, sp, #UKARCH_SYSCTX_SIZE     /* reserve space for ukarch sysctx */
-	mov sp, x0
-	and sp, sp, #~0xf                         /* mare sure we're aligned */
+	mov x0, sp
+	and sp, x0, #~0xf                         /* mare sure we're aligned */
 	mov x0, sp                                /* prepare args */
 	bl	ukarch_sysctx_store		/* save uk sysctx */
 
