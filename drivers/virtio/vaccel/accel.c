@@ -97,7 +97,7 @@ struct device *accel_dev_init()
 	uk_pr_info("Register '%s' to devfs\n", DEV_VACCEL_NAME);
 
 	/* register /dev/accel */
-	rc = device_create(&drv_accel, DEV_VACCEL_NAME, D_CHR, &dev);
+	int rc = device_create(&drv_accel, DEV_VACCEL_NAME, D_CHR, &dev);
 	if (unlikely(rc)) {
 		uk_pr_err("Failed to register '%s' to devfs: %d\n",
 			  DEV_VACCEL_NAME, rc);
