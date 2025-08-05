@@ -1,7 +1,7 @@
 #ifndef _ACCEL_H
 #define _ACCEL_H
 
-#warn This is duplicated from libvaccel
+#warning This is duplicated from libvaccel
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
