@@ -18,4 +18,8 @@ config LIBPOSIX_FUTEX_TEST
 	default n
 	select LIBUKTEST
 	select LIBSYSCALL_SHIM
+
+config LIBPOSIX_FUTEX_WAKE_PREFER_CHILD
+	bool "Prefer child after wake"
+	default n
 endif
