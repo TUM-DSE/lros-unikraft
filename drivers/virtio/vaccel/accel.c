@@ -28,7 +28,7 @@ int dev_accel_ioctl(struct device *dev, unsigned long cmd, void *arg)
 	req->usr = arg;
 	req->priv = sess;
 	req->vaccel = vaccel;
-	/* 
+	/*
 	 * Just a random value different than 0, so we can wait till virtqueue
 	 * callback change it to 0
 	 */
@@ -80,6 +80,8 @@ static struct devops accel_devops = {
 	.ioctl = dev_accel_ioctl,
 	.open = dev_accel_open,
 	.close = dev_accel_close,
+	.read = ((devop_read_t)devop_eperm),
+	.write = ((devop_write_t)devop_eperm),
 };
 
 static struct driver drv_accel = {
@@ -95,10 +97,10 @@ struct device *accel_dev_init()
 	uk_pr_info("Register '%s' to devfs\n", DEV_VACCEL_NAME);
 
 	/* register /dev/accel */
-	dev = device_create(&drv_accel, DEV_VACCEL_NAME, D_CHR);
-	if (dev == NULL) {
-		uk_pr_err("Failed to register '%s' to devfs\n",
-			  DEV_VACCEL_NAME);
+	rc = device_create(&drv_accel, DEV_VACCEL_NAME, D_CHR, &dev);
+	if (unlikely(rc)) {
+		uk_pr_err("Failed to register '%s' to devfs: %d\n",
+			  DEV_VACCEL_NAME, rc);
 		return NULL;
 	}
 
