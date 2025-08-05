@@ -1,0 +1,7 @@
+config LIBVIRTIO_ACCEL
+	bool "Virtio Accel Device"
+	default n
+	select LIBVIRTIO_BUS
+	select LIBUKGLIST
+	help
+		Vaccel driver.
