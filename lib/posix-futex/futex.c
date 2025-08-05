@@ -199,6 +199,10 @@ static int futex_wake(uint32_t *uaddr, uint32_t val)
 	uk_spin_unlock(&futex_list_lock);
 	ukplat_lcpu_restore_irqf(irqf);
 
+#ifdef CONFIG_LIBPOSIX_FUTEX_WAKE_PREFER_CHILD
+        if (count) uk_sched_yield();
+#endif /* CONFIG_LIBPOSIX_FUTEX_WAKE_PREFER_CHILD */
+
 	return (int) count;
 }
 
