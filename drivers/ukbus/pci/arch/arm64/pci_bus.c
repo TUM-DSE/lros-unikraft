@@ -61,7 +61,7 @@
 #include "../../pci_ecam.h"
 
 #define DEVFN(dev, fn)   ((dev << PCI_FN_BIT_NBR) | fn)
-#define SIZE_PER_PCI_DEV 0x20	/* legacy pci device size, no msi */
+#define SIZE_PER_PCI_DEV 0x100	/* legacy pci device size, no msi */
 
 static int arch_pci_driver_add_device(struct pci_driver *drv,
 					struct pci_address *addr,
