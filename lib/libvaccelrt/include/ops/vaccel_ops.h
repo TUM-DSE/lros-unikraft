@@ -43,6 +43,20 @@ enum vaccel_op_type {
 	VACCEL_F_MMULT,		    /* 17 */
 	VACCEL_F_PARALLEL,	    /* 18 */
 	VACCEL_F_VECTORADD,	    /* 19 */
+	VACCEL_EXEC_WITH_RESOURCE,
+	VACCEL_TORCH_JITLOAD_FORWARD,
+	VACCEL_TORCH_SGEMM,
+	VACCEL_OPENCV,
+	VACCEL_TFLITE_SESSION_LOAD,
+	VACCEL_TFLITE_SESSION_RUN,
+	VACCEL_TFLITE_SESSION_DELETE,
+	VACCEL_MATMUL_CREATE,
+	VACCEL_CREATE_MEM,
+	VACCEL_DESTROY_MEM,
+	VACCEL_MATMUL_DESTROY,
+	VACCEL_MATMUL_SET_IO,
+	VACCEL_MATMUL_SET_CORE_MASK,
+	VACCEL_MATMUL_RUN,
 	VACCEL_FUNCTIONS_NR
 };
 
@@ -67,6 +81,20 @@ static const char *vaccel_op_name[] = {
 	"Matrix multiplication",
 	"Parallel acceleration",
 	"Vector Add",
+    "Exec with resource",
+    "Torch jitload forward",
+    "Torch SGEMM",
+    "OpenCV",
+    "TFlite session load",
+    "TFlite session run",
+    "TFlite session delete",
+    "Matmul create",
+    "Create mem",
+    "Destroy mem",
+    "Matmul destroy",
+    "Matmul set IO",
+    "Matmul set core mask",
+    "Matmul run"
 };
 
 static inline const char *vaccel_op_type_str(enum vaccel_op_type op_type)

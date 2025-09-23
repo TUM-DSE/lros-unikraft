@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "operations_matmul.h"
 
 struct vaccel_session;
 
