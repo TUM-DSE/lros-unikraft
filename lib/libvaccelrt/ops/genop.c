@@ -16,6 +16,7 @@
 #include "ops/vaccel_ops.h"
 
 #include "blas.h"
+#include "matmul.h"
 #include "minmax.h"
 #include "exec.h"
 #include "image.h"
@@ -51,10 +52,24 @@ unpack_func_t callbacks[VACCEL_FUNCTIONS_NR] = {
 	vaccel_noop_unpack,			/* 13 */
 	vaccel_noop_unpack,			/* 14 */
 	vaccel_minmax_unpack,			/* 15 */
-	//vaccel_fpga_arraycopy_unpack,		/* 16 */
-	//vaccel_fpga_mmult_unpack,		/* 17 */
-	//vaccel_fpga_parallel_unpack,		/* 18 */
-	//vaccel_fpga_vadd_unpack,		/* 19 */
+    vaccel_noop_unpack, /* 16 */
+    vaccel_noop_unpack, /* 17 */
+    vaccel_noop_unpack, /* 18 */
+    vaccel_noop_unpack, /* 19 */
+    vaccel_noop_unpack, /* 20 */
+    vaccel_noop_unpack, /* 21 */
+    vaccel_noop_unpack, /* 22 */
+    vaccel_noop_unpack, /* 23 */
+    vaccel_noop_unpack,
+    vaccel_noop_unpack,
+    vaccel_noop_unpack,
+    vaccel_matmul_create_unpack,
+    vaccel_create_mem_unpack,
+    vaccel_destroy_mem_unpack,
+    vaccel_matmul_destroy_unpack,
+    vaccel_matmul_set_io_mem_unpack,
+    vaccel_matmul_set_core_mask_unpack,
+    vaccel_matmul_run_unpack,
 };
 
 int vaccel_genop(struct vaccel_session *sess, struct vaccel_arg  *read,

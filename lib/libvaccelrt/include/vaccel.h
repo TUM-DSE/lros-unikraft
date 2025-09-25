@@ -25,6 +25,7 @@
 #include "ops/blas.h"
 #include "ops/matmul.h"
 #include "ops/minmax.h"
+#include "ops/minmax.h"
 #include "ops/exec.h"
 #include "ops/genop.h"
 #include "ops/image.h"
