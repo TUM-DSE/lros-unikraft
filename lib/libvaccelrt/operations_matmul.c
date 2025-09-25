@@ -21,7 +21,7 @@ int virtio_matmul_create(struct vaccel_session *sess, vaccel_matmul_ctx *ctx,
 	    { sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
 	    { sizeof(vaccel_matmul_info), (unsigned char *)info, NULL, 0, {0} },
 	    { sizeof(vaccel_matmul_ctx), (unsigned char *)ctx, NULL, 0, {0} },
-	    { sizeof(io_attr), (unsigned char *)io_attr, NULL, 0, {0} },
+	    { sizeof(vaccel_matmul_io_attr), (unsigned char *)io_attr, NULL, 0, {0} },
 	};
 
 	vsess.id = sess->session_id;
