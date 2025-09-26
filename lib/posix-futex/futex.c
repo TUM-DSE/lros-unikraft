@@ -200,7 +200,8 @@ static int futex_wake(uint32_t *uaddr, uint32_t val)
 	ukplat_lcpu_restore_irqf(irqf);
 
 #ifdef CONFIG_LIBPOSIX_FUTEX_WAKE_PREFER_CHILD
-        if (count) uk_sched_yield();
+		// Yield if we woke another thread and current one is still scheduled
+        if (count && uk_thread_current()->sched) uk_sched_yield();
 #endif /* CONFIG_LIBPOSIX_FUTEX_WAKE_PREFER_CHILD */
 
 	return (int) count;
