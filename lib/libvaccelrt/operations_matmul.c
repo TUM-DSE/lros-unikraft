@@ -173,3 +173,52 @@ int virtio_matmul_run(struct vaccel_session *sess, vaccel_matmul_ctx ctx)
 
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
+
+int virtio_matmul_set_matrix(struct vaccel_session *sess,
+			     vaccel_tensor_mem_handle *dst, void *src,
+			     size_t nbytes)
+{
+	enum vaccel_op_type op_type = VACCEL_MATMUL_SET_MATRIX;
+    struct accel_session vsess = { 0 };
+    struct accel_arg args[4] = {
+            { sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
+	        { sizeof(vaccel_tensor_mem_handle*), (unsigned char *)&dst, NULL, 0, {0} },
+            { nbytes, (unsigned char *)src, NULL, 0, {0} },
+            { sizeof(nbytes), (unsigned char *)&nbytes, NULL, 0, {0} },
+    };
+
+	vsess.id = sess->session_id;
+	vsess.op.out_nr = 4;
+	vsess.op.out = args;
+	vsess.op.in_nr = 0;
+	vsess.op.in = &args[4];
+
+	vaccel_debug("[virtio] session:%u Executing set matrix",
+		     sess->session_id);
+
+	return dev_write(VACCEL_DO_OP, &vsess);
+}
+
+int virtio_matmul_get_matrix(struct vaccel_session *sess, void *dst,
+			     vaccel_tensor_mem_handle *src, size_t nbytes)
+{
+	enum vaccel_op_type op_type = VACCEL_MATMUL_GET_MATRIX;
+	struct accel_session vsess = { 0 };
+	struct accel_arg args[4] = {
+	    { sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
+	    { sizeof(vaccel_tensor_mem_handle*), (unsigned char *)&src, NULL, 0, {0} },
+	    { sizeof(nbytes), (unsigned char *)&nbytes, NULL, 0, {0} },
+	    { nbytes, (unsigned char *)dst, NULL, 0, {0} },
+	};
+
+	vsess.id = sess->session_id;
+	vsess.op.out_nr = 3;
+	vsess.op.out = args;
+	vsess.op.in_nr = 1;
+	vsess.op.in = &args[3];
+
+	vaccel_debug("[virtio] session:%u Executing get matrix",
+		     sess->session_id);
+
+	return dev_write(VACCEL_DO_OP, &vsess);
+}

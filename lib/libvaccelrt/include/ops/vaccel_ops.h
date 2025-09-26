@@ -57,6 +57,8 @@ enum vaccel_op_type {
 	VACCEL_MATMUL_SET_IO,
 	VACCEL_MATMUL_SET_CORE_MASK,
 	VACCEL_MATMUL_RUN,
+	VACCEL_MATMUL_SET_MATRIX,
+	VACCEL_MATMUL_GET_MATRIX,
 	VACCEL_FUNCTIONS_NR
 };
 
@@ -94,7 +96,9 @@ static const char *vaccel_op_name[] = {
     "Matmul destroy",
     "Matmul set IO",
     "Matmul set core mask",
-    "Matmul run"
+    "Matmul run",
+    "Matmul set matrix",
+    "Matmul get matrix",
 };
 
 static inline const char *vaccel_op_type_str(enum vaccel_op_type op_type)

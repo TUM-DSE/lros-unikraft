@@ -208,6 +208,62 @@ int vaccel_matmul_run_unpack(struct vaccel_session *sess, struct vaccel_arg *rea
 	return vaccel_matmul_run(sess, ctx);
 }
 
+int vaccel_matmul_set_matrix(struct vaccel_session *sess, vaccel_tensor_mem_handle* dst, void* src, size_t nbytes)
+{
+	return virtio_matmul_set_matrix(sess, dst, src, nbytes);
+}
+
+int vaccel_matmul_set_matrix_unpack(struct vaccel_session *sess, struct vaccel_arg *read,
+				    int nr_read, _unused struct vaccel_arg *write, int nr_write)
+{
+	if (nr_read != 3) {
+		vaccel_error("Wrong number of read arguments in matmul_set_matrix: %d",
+			     nr_read);
+		return VACCEL_EINVAL;
+	}
+
+	if (nr_write != 0) {
+		vaccel_error("Wrong number of write arguments in matmul_set_matrix: %d",
+			     nr_write);
+		return VACCEL_EINVAL;
+	}
+
+	vaccel_tensor_mem_handle* dst = *(vaccel_tensor_mem_handle**)read[0].buf;
+	void* src = read[1].buf;
+	size_t nbytes = *(size_t*)read[2].buf;
+
+
+	return vaccel_matmul_set_matrix(sess, dst, src, nbytes);
+}
+
+int vaccel_matmul_get_matrix(struct vaccel_session *sess, void* dst, vaccel_tensor_mem_handle* src, size_t nbytes)
+{
+	return virtio_matmul_get_matrix(sess, dst, src, nbytes);
+}
+
+int vaccel_matmul_get_matrix_unpack(struct vaccel_session *sess, struct vaccel_arg *read,
+				    int nr_read, struct vaccel_arg *write, int nr_write)
+{
+	if (nr_read != 2) {
+		vaccel_error("Wrong number of read arguments in matmul_set_matrix: %d",
+			     nr_read);
+		return VACCEL_EINVAL;
+	}
+
+	if (nr_write != 1) {
+		vaccel_error("Wrong number of write arguments in matmul_set_matrix: %d",
+			     nr_write);
+		return VACCEL_EINVAL;
+	}
+
+	vaccel_tensor_mem_handle* src = *(vaccel_tensor_mem_handle**)read[0].buf;
+	size_t nbytes = *(size_t*)read[1].buf;
+
+	void* dst = write[0].buf;
+
+	return vaccel_matmul_get_matrix(sess, dst, src, nbytes);
+}
+
 __attribute__((constructor)) static void vaccel_ops_init(void)
 {
 }

@@ -31,4 +31,12 @@ int virtio_matmul_set_core_mask(struct vaccel_session *sess,
 
 int virtio_matmul_run(struct vaccel_session *sess, vaccel_matmul_ctx ctx);
 
+int virtio_matmul_set_matrix(struct vaccel_session *sess,
+			     vaccel_tensor_mem_handle *dst, void *src,
+			     size_t nbytes);
+
+int virtio_matmul_get_matrix(struct vaccel_session *sess, void *dst,
+			     vaccel_tensor_mem_handle *src, size_t nbytes);
+
+
 #endif // __VACCEL_VIRTIO_OPERATIONS_MATMUL_H__
