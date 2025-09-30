@@ -264,6 +264,38 @@ int vaccel_matmul_get_matrix_unpack(struct vaccel_session *sess, struct vaccel_a
 	return vaccel_matmul_get_matrix(sess, dst, src, nbytes);
 }
 
+int vaccel_matmul_get_props(struct vaccel_session *sess, char *props,
+			    size_t nbytes)
+{
+	return virtio_matmul_get_props;
+}
+
+int vaccel_matmul_get_props_unpack(struct vaccel_session *sess,
+				   struct vaccel_arg *read, int nr_read,
+				   struct vaccel_arg *write, int nr_write)
+{
+	if (nr_read != 1) {
+		vaccel_error(
+		    "Wrong number of read arguments in matmul_get_props: %d",
+		    nr_read);
+		return VACCEL_EINVAL;
+	}
+
+	if (nr_write != 1) {
+		vaccel_error(
+		    "Wrong number of write arguments in matmul_get_props: %d",
+		    nr_write);
+		return VACCEL_EINVAL;
+	}
+
+	size_t nbytes = *(size_t *)read[0].buf;
+
+	void *props = write[0].buf;
+
+	return vaccel_matmul_get_props(sess, props, nbytes);
+}
+
+
 __attribute__((constructor)) static void vaccel_ops_init(void)
 {
 }

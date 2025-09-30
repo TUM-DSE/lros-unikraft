@@ -59,6 +59,7 @@ enum vaccel_op_type {
 	VACCEL_MATMUL_RUN,
 	VACCEL_MATMUL_SET_MATRIX,
 	VACCEL_MATMUL_GET_MATRIX,
+	VACCEL_MATMUL_GET_PROPS,
 	VACCEL_FUNCTIONS_NR
 };
 
@@ -99,6 +100,7 @@ static const char *vaccel_op_name[] = {
     "Matmul run",
     "Matmul set matrix",
     "Matmul get matrix",
+    "Matmul get props",
 };
 
 static inline const char *vaccel_op_type_str(enum vaccel_op_type op_type)

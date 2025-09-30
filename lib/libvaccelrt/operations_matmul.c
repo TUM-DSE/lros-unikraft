@@ -222,3 +222,25 @@ int virtio_matmul_get_matrix(struct vaccel_session *sess, void *dst,
 
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
+
+int vaccel_matmul_get_props(struct vaccel_session *sess, char *props,
+			    size_t nbytes){
+	enum vaccel_op_type op_type = VACCEL_MATMUL_GET_PROPS;
+	struct accel_session vsess = { 0 };
+	struct accel_arg args[4] = {
+	    { sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
+	    { sizeof(nbytes), (unsigned char *)&nbytes, NULL, 0, {0} },
+	    { nbytes, (unsigned char *)props, NULL, 0, {0} },
+	};
+
+	vsess.id = sess->session_id;
+	vsess.op.out_nr = 2;
+	vsess.op.out = args;
+	vsess.op.in_nr = 1;
+	vsess.op.in = &args[2];
+
+	vaccel_debug("[virtio] session:%u Executing get props",
+		     sess->session_id);
+
+	return dev_write(VACCEL_DO_OP, &vsess);
+}

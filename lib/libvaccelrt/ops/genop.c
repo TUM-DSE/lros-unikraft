@@ -72,6 +72,7 @@ unpack_func_t callbacks[VACCEL_FUNCTIONS_NR] = {
     vaccel_matmul_run_unpack,
     vaccel_matmul_set_matrix_unpack,
     vaccel_matmul_get_matrix_unpack
+    vaccel_matmul_get_props_unpack
 };
 
 int vaccel_genop(struct vaccel_session *sess, struct vaccel_arg  *read,
