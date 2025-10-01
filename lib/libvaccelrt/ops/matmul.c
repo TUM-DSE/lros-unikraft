@@ -267,7 +267,7 @@ int vaccel_matmul_get_matrix_unpack(struct vaccel_session *sess, struct vaccel_a
 int vaccel_matmul_get_props(struct vaccel_session *sess, char *props,
 			    size_t nbytes)
 {
-	return virtio_matmul_get_props;
+	return virtio_matmul_get_props(sess, props, nbytes);;
 }
 
 int vaccel_matmul_get_props_unpack(struct vaccel_session *sess,

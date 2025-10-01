@@ -223,7 +223,7 @@ int virtio_matmul_get_matrix(struct vaccel_session *sess, void *dst,
 	return dev_write(VACCEL_DO_OP, &vsess);
 }
 
-int vaccel_matmul_get_props(struct vaccel_session *sess, char *props,
+int virtio_matmul_get_props(struct vaccel_session *sess, char *props,
 			    size_t nbytes){
 	enum vaccel_op_type op_type = VACCEL_MATMUL_GET_PROPS;
 	struct accel_session vsess = { 0 };
