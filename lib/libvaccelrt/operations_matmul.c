@@ -85,7 +85,7 @@ int virtio_destroy_mem(struct vaccel_session *sess, vaccel_matmul_ctx ctx,
 
 int virtio_matmul_destroy(struct vaccel_session *sess, vaccel_matmul_ctx ctx)
 {
-	enum vaccel_op_type op_type = VACCEL_DESTROY_MEM;
+	enum vaccel_op_type op_type = VACCEL_MATMUL_DESTROY;
 	struct accel_session vsess = { 0 };
 	struct accel_arg args[2] = {
 	    { sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
