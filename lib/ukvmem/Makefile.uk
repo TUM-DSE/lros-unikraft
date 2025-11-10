@@ -10,6 +10,9 @@ LIBUKVMEM_SRCS-y += $(LIBUKVMEM_BASE)/vma_stack.c|isr
 LIBUKVMEM_SRCS-y += $(LIBUKVMEM_BASE)/vma_dma.c|isr
 ifeq ($(CONFIG_LIBVFSCORE),y)
 LIBUKVMEM_SRCS-y += $(LIBUKVMEM_BASE)/vma_file.c|isr
+LIBUKVMEM_SRCS-y += $(LIBUKVMEM_BASE)/vma_file_defer_isr.c|isr
+LIBUKVMEM_SRCS-y += $(LIBUKVMEM_BASE)/vma_file_defer_yield.S
+LIBUKVMEM_SRCS-y += $(LIBUKVMEM_BASE)/vma_file_defer.c
 endif
 
 ifeq ($(CONFIG_HAVE_PAGING),y)

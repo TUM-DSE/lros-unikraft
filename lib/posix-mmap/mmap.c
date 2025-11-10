@@ -149,7 +149,10 @@ static int do_mmap(void **addr, size_t len, int prot, int flags, int fd,
 		file_args.offset = offset;
 
 		vargs = &file_args;
-		vops  = &uk_vma_file_ops;
+		if (flags & MAP_POPULATE)
+			vops  = &uk_vma_file_defer_ops;
+		else
+			vops  = &uk_vma_file_ops;
 #else
 		(void)fd; /* silence warning */
 

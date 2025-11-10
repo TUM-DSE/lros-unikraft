@@ -281,6 +281,45 @@ static inline int uk_vma_map_file(struct uk_vas *vas, __vaddr_t *vaddr,
 	return uk_vma_map(vas, vaddr, len, attr, flags, __NULL,
 			  &uk_vma_file_ops, &args);
 }
+
+extern const struct uk_vma_ops uk_vma_file_defer_ops;
+
+struct uk_vma_file_defer {
+	struct uk_vma base;
+
+	/** File mapped in this VMA */
+	struct vfscore_file *f;
+
+	/** Start offset describing what position in the file is mapped */
+	__off offset;
+
+	__off* arr;
+	__off* arr_p;
+	__sz len;
+	__vaddr_t buf;
+	__paddr_t buf_p;
+	__sz buf_len;
+	struct uk_thread* preload_thread;
+	struct uk_thread* waiting_thread;
+	bool exit;
+};
+
+static inline int uk_vma_map_file_defer(struct uk_vas *vas, __vaddr_t *vaddr,
+					  __sz len, unsigned long attr,
+					  unsigned long flags, int fd, __off offset)
+	{
+		struct uk_vma_file_args args = {
+			.fd = fd,
+			.offset = offset,
+		};
+
+		UK_ASSERT(fd >= 0);
+		UK_ASSERT(offset >= 0);
+		UK_ASSERT(PAGE_ALIGNED(offset));
+
+		return uk_vma_map(vas, vaddr, len, attr, flags, __NULL,
+				  &uk_vma_file_defer_ops, &args);
+	}
 #endif /* CONFIG_LIBVFSCORE */
 
 #ifdef __cplusplus
