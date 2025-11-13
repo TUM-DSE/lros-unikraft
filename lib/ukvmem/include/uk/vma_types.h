@@ -295,6 +295,7 @@ struct uk_vma_file_defer {
 
 	__off* arr;
 	__off* arr_p;
+	unsigned long block_size;
 	__sz len;
 	__vaddr_t buf;
 	__paddr_t buf_p;

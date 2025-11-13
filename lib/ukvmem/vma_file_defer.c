@@ -28,7 +28,7 @@ static __noreturn void defer_file_load(void *data)
 	 * Read blockwise into buffer
 	 */
 	struct uk_vma_file_defer *vma_file = (struct uk_vma_file_defer *)data;
-	const int block_size = PAGE_SIZE;
+	const int block_size = vma_file->block_size;
 	struct vnode *vp = vma_file->f->f_dentry->d_vnode;
 	__off *arr = vma_file->arr;
 	__off *arr_p = vma_file->arr_p;
@@ -51,7 +51,7 @@ static __noreturn void defer_file_load(void *data)
 		};
 		int rc;
 
-		if (arr[off_file / PAGE_SIZE] >= 0) {
+		if (arr[off_file / block_size] >= 0) {
 			// Already there
 			if (len <= buf_len) {
 				if (vma_file->waiting_thread)
@@ -62,27 +62,24 @@ static __noreturn void defer_file_load(void *data)
 			continue;
 		}
 
-		// Respect blocksize
-		arr[off_file / PAGE_SIZE] = -2;
+		arr[off_file / block_size] = -2;
 
-		__off prev = arr_p[off_buf / PAGE_SIZE];
+		__off prev = arr_p[off_buf / block_size];
 
 		if (prev >= 0) {
-			// Respect blocksize
-			arr[prev / PAGE_SIZE] = -1;
+			arr[prev / block_size] = -1;
 			// Unmap
 			ukplat_page_unmap(
-		    		vma_file->base.vas->pt, vma_file->base.start + prev,
-		    		block_size >> PAGE_SHIFT, PAGE_FLAG_KEEP_PTES);
+			    vma_file->base.vas->pt, vma_file->base.start + prev,
+			    block_size >> PAGE_SHIFT, PAGE_FLAG_KEEP_PTES);
 		}
 		vn_lock(vp);
 		rc = VOP_READ(vp, vma_file->f, &uio, 0);
 		vn_unlock(vp);
 
-		// Respect blocksize
-		arr[off_file / PAGE_SIZE] = off_buf;
+		arr[off_file / block_size] = off_buf;
 
-		arr_p[off_buf / PAGE_SIZE] = off_file;
+		arr_p[off_buf / block_size] = off_file;
 
 		if (vma_file->waiting_thread)
 			uk_thread_wake(vma_file->waiting_thread);
@@ -171,6 +168,7 @@ int vma_op_file_defer_new(struct uk_vas *vas, __vaddr_t vaddr, __sz len,
 	vma_file->arr = arr;
 	vma_file->arr_p = arr_p;
 	vma_file->len = PAGE_ALIGN_UP(len);
+	vma_file->block_size = 2 * 1024lu * 1024lu; //2 MB
 	vma_file->buf = vaddr1;
 	vma_file->buf_p = buf;
 	vma_file->buf_len = buf_len;

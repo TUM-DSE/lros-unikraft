@@ -74,11 +74,11 @@ static int vma_op_file_defer_fault(struct uk_vma *vma, struct uk_vm_fault *fault
 		//rc = vma_file_read(vma_file->f, vaddr, fault->len, off, &bytes);
 
 retry:
-		__off buf_off = vma_file->arr[off/PAGE_SIZE];
+		__off buf_off = vma_file->arr[off / vma_file->block_size];
 
 		if (buf_off >= 0) {
 			// Currently "paged in"
-			paddr = buf_off + vma_file->buf_p;
+			paddr = buf_off + vma_file->buf_p + off % vma_file->block_size;
 		} else {
 			// Need to wait for background thread to fetch page
 			struct __regs* regs = fault->regs;
