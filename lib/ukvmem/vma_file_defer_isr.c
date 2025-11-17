@@ -33,29 +33,6 @@ static __vaddr_t vma_op_file_get_base(struct uk_vas *vas __unused,
 
 void sched_yield_simulate(struct __regs* regs);
 
-static void vma_op_file_destroy(struct uk_vma *vma)
-{
-	struct uk_vma_file_defer *vma_file = (struct uk_vma_file_defer *)vma;
-
-	if (!uk_thread_is_exited(vma_file->preload_thread)){
-		struct uk_thread *current = uk_thread_current();
-		unsigned long flags = ukplat_lcpu_save_irqf();
-		vma_file->waiting_thread = current;
-		uk_thread_set_blocked(current);
-		uk_sched_thread_blocked(current);
-		vma_file->exit = true;
-		ukplat_lcpu_restore_irqf(flags);
-		sched_yield();
-	}
-
-	UK_ASSERT(vma_file->f);
-	fdrop(vma_file->f);
-
-	uk_free(vma->vas->a, vma_file->arr);
-	uk_free(vma->vas->a, vma_file->arr_p);
-	ukplat_page_kunmap(vma->vas->pt, vma_file->buf, vma_file->buf_len / PAGE_SIZE,0);
-	uk_ffree(vma->vas->pt->fa, vma_file->buf_p, vma_file->buf_len / PAGE_SIZE);
-}
 
 static int vma_op_file_defer_fault(struct uk_vma *vma, struct uk_vm_fault *fault)
 {
@@ -69,16 +46,18 @@ static int vma_op_file_defer_fault(struct uk_vma *vma, struct uk_vm_fault *fault
 
 	if (!(vma->flags & UK_VMA_FLAG_UNINITIALIZED)) {
 
-		off = (fault->vbase - vma->start) + vma_file->offset;
+		__sz block_size = vma_file->thread_args->block_size;
+
+		off = (fault->vbase - vma->start) + vma_file->thread_args->offset % block_size;
 
 		//rc = vma_file_read(vma_file->f, vaddr, fault->len, off, &bytes);
 
 retry:
-		__off buf_off = vma_file->arr[off / vma_file->block_size];
+		__off buf_off = vma_file->thread_args->arr[off / block_size];
 
 		if (buf_off >= 0) {
 			// Currently "paged in"
-			paddr = buf_off + vma_file->buf_p + off % vma_file->block_size;
+			paddr = buf_off + vma_file->buf_p + off % block_size;
 		} else {
 			// Need to wait for background thread to fetch page
 			struct __regs* regs = fault->regs;
@@ -98,7 +77,7 @@ retry:
 
 			// Set the current thread to sleep
 			struct uk_thread *current = uk_thread_current();
-			vma_file->waiting_thread = current;
+			vma_file->thread_args->waiting_thread = current;
 			uk_thread_set_blocked(current);
 			uk_sched_thread_blocked(current);
 
@@ -134,9 +113,37 @@ static int vma_op_file_defer_unmap(struct uk_vma *vma, __vaddr_t vaddr, __sz len
 	return ukplat_page_unmap(vma->vas->pt, vaddr, len / PAGE_SIZE, PAGE_FLAG_KEEP_FRAMES);
 }
 
+static int vma_op_file_defer_split(struct uk_vma *vma, __vaddr_t vaddr,
+				   struct uk_vma **new_vma)
+{
+	struct uk_vma_file_defer *vma_file_defer = (struct uk_vma_file_defer *)vma;
+	struct uk_vma_file_defer *v;
+
+	if (vma_file_defer->thread_args->count > 1) {
+		return -EPERM;
+	}
+	vma_file_defer->thread_args->count++;
+
+	v = uk_malloc(vma->vas->a, sizeof(struct uk_vma_file_defer));
+	if (unlikely(!v))
+		return -ENOMEM;
+
+	v->thread_args = vma_file_defer->thread_args;
+	v->preload_thread = vma_file_defer->preload_thread;
+	v->buf_p = vma_file_defer->buf_p;
+
+	v->thread_args->vma2 = &v->base;
+
+	UK_ASSERT(new_vma);
+	*new_vma = &v->base;
+
+	return 0;
+}
+
 int vma_op_file_defer_new(struct uk_vas *vas, __vaddr_t vaddr __unused,
 			  __sz len, void *data, unsigned long attr,
 			  unsigned long *flags, struct uk_vma **vma);
+void vma_op_file_defer_destroy(struct uk_vma *vma);
 
 /* We only support private mappings. Changes are not carried through to the
  * underlying file. So we can just use the default unmap handler that unmaps
@@ -151,10 +158,10 @@ const struct uk_vma_ops uk_vma_file_defer_ops = {
 	.get_base	= __NULL,
 #endif /* !CONFIG_LIBUKVMEM_FILE_BASE */
 	.new		= vma_op_file_defer_new,
-	.destroy	= vma_op_file_destroy,
+	.destroy	= vma_op_file_defer_destroy,
 	.fault		= vma_op_file_defer_fault,
 	.unmap		= vma_op_file_defer_unmap,
-	.split		= vma_op_deny,
+	.split		= vma_op_file_defer_split,
 	.merge		= vma_op_deny,
 	.set_attr	= vma_op_deny,
 	.advise		= vma_op_advise,	/* default */

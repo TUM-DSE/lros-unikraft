@@ -287,21 +287,33 @@ extern const struct uk_vma_ops uk_vma_file_defer_ops;
 struct uk_vma_file_defer {
 	struct uk_vma base;
 
+	struct uk_vma_file_defer_thread_args* thread_args;
+
+	struct uk_thread* preload_thread;
+	__paddr_t buf_p; // Physical memory of prefetch buffer
+
+};
+
+struct uk_vma_file_defer_thread_args {
+
+	struct uk_vma* vma;
+	struct uk_vma* vma2;
+
 	/** File mapped in this VMA */
 	struct vfscore_file *f;
 
 	/** Start offset describing what position in the file is mapped */
 	__off offset;
+	__vaddr_t start;
 
 	__off* arr;
 	__off* arr_p;
 	unsigned long block_size;
 	__sz len;
 	__vaddr_t buf;
-	__paddr_t buf_p;
 	__sz buf_len;
-	struct uk_thread* preload_thread;
 	struct uk_thread* waiting_thread;
+	__u8 count;
 	bool exit;
 };
 
