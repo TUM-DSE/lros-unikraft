@@ -89,7 +89,10 @@ static __noreturn void defer_file_load(void *data)
 		arr_p[off_buf / block_size] = off_file;
 
 		if (args->waiting_thread)
+		{
 			uk_thread_wake(args->waiting_thread);
+			args->waiting_thread = NULL;
+		}
 		if (args->exit)
 			uk_thread_exit();
 		uk_sched_yield(); // Allow other threads to progress
