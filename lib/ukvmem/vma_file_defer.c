@@ -133,7 +133,7 @@ int vma_op_file_defer_new(struct uk_vas *vas, __vaddr_t vaddr, __sz len,
 	UK_ASSERT(vma);
 	*vma = &vma_file->base;
 
-	__sz arr_len = PAGE_ALIGN_UP(len) * sizeof(__off) / PAGE_SIZE;
+	__sz arr_len = sizeof(__off) * ALIGN_UP(len, block_size) / block_size;
 
 	__off *arr = uk_malloc(vas->a, arr_len);
 	if (unlikely(!arr)) {
