@@ -40,6 +40,11 @@ static __noreturn void defer_file_load(void *data)
 
 	for (__sz off_file = 0, off_buf = 0;; off_file += block_size,
 		  off_file %= len, off_buf += block_size, off_buf %= buf_len) {
+		if (args->target > 0) {
+			off_file = ALIGN_DOWN(args->target, block_size);
+			UK_ASSERT(off_file < len);
+			args->target = -1;
+		}
 		struct iovec iovec = {
 		    .iov_base = (void *)(buf + off_buf),
 		    .iov_len = block_size,
@@ -164,6 +169,7 @@ int vma_op_file_defer_new(struct uk_vas *vas, __vaddr_t vaddr, __sz len,
 	thread_args->len = PAGE_ALIGN_UP(len);
 	thread_args->block_size = block_size;
 	thread_args->waiting_thread = NULL;
+	thread_args->target = -1;
 	thread_args->count = 1;
 	thread_args->exit = false;
 

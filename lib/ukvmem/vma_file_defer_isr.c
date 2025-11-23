@@ -78,6 +78,7 @@ retry:
 			// Set the current thread to sleep
 			struct uk_thread *current = uk_thread_current();
 			vma_file->thread_args->waiting_thread = current;
+			vma_file->thread_args->target = off;
 			uk_thread_set_blocked(current);
 			uk_sched_thread_blocked(current);
 

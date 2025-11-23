@@ -313,6 +313,7 @@ struct uk_vma_file_defer_thread_args {
 	__vaddr_t buf;
 	__sz buf_len;
 	struct uk_thread* waiting_thread;
+	__off target;
 	__u8 count;
 	bool exit;
 };
