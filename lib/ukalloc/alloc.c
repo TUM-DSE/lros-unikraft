@@ -42,6 +42,9 @@
 #include <uk/arch/limits.h>
 #include <uk/arch/lcpu.h>
 #include <uk/arch/paging.h>
+#ifdef CONFIG_LIBUKVMEM
+#include <uk/vmem.h>
+#endif
 
 #if CONFIG_HAVE_MEMTAG
 #include <uk/arch/memtag.h>
@@ -629,3 +632,39 @@ unsigned long uk_alloc_pavailmem_total(void)
 	}
 	return total;
 }
+
+#ifdef CONFIG_LIBUKVMEM
+void *uk_malloc_anon(__sz size)
+{
+    __vaddr_t vaddr = __VADDR_ANY;
+    int err = uk_vma_map_anon(uk_vas_get_active(), &vaddr, PAGE_ALIGN_UP(size + 16), PAGE_ATTR_PROT_RW, 0, __NULL);
+    if (unlikely(err)) {
+        errno = err;
+        return __NULL;
+    }
+    long* p = (long*) vaddr;
+    *p = PAGE_ALIGN_UP(size + 16); // allocted size
+    *(p + 1) = -1;
+    return p + 2;
+}
+
+int uk_posixmemalign_anon(void **memptr, __sz align, __sz size)
+{
+    __vaddr_t vaddr = __VADDR_ANY;
+    int err = uk_vma_map_anon(uk_vas_get_active(), &vaddr, PAGE_ALIGN_UP(size + 16 + align), PAGE_ATTR_PROT_RW, 0, __NULL);
+    if (unlikely(err)){
+        *memptr = __NULL;
+        return err;
+    }
+    long* p = (long*) ALIGN_UP(vaddr + 16, align);
+    *(p - 2) = PAGE_ALIGN_UP(size + 16); // allocted size
+    *(p - 1) = -1;
+    *memptr = p;
+    return 0;
+}
+
+void uk_free_anon(long* p)
+{
+    uk_vma_unmap(uk_vas_get_active(), PAGE_ALIGN_DOWN((__vaddr_t) (p - 2)), *(p - 2), 0);
+}
+#endif

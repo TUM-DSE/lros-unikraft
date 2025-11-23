@@ -23,3 +23,6 @@ _uk_alloc_head
 uk_alloc_stats_get
 _uk_alloc_stats_global
 uk_alloc_stats_get_global
+uk_malloc_anon
+uk_posixmemalign_anon
+uk_free_anon

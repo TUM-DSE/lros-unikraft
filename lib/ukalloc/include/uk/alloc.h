@@ -34,6 +34,10 @@
 #ifndef __UK_ALLOC_H__
 #define __UK_ALLOC_H__
 
+#include <uk/config.h>
+#ifdef CONFIG_LIBUKVMEM
+#include <uk/arch/paging.h>
+#endif
 #include <uk/arch/types.h>
 #include <uk/config.h>
 #include <uk/assert.h>
@@ -145,12 +149,27 @@ static inline void *uk_do_malloc(struct uk_alloc *a, __sz size)
 	return a->malloc(a, size);
 }
 
+#ifdef CONFIG_LIBUKVMEM
+void *uk_malloc_anon(__sz size);
+int uk_posixmemalign_anon(void **memptr, __sz align, __sz size);
+void uk_free_anon(long* p);
+#endif
+
 static inline void *uk_malloc(struct uk_alloc *a, __sz size)
 {
 	if (unlikely(!a)) {
 		errno = ENOMEM;
 		return __NULL;
 	}
+
+#ifdef CONFIG_LIBUKVMEM
+	if (size >= 16llu * 1024llu * 1024llu) {
+		// 16MB
+		// Use separate anon based alloc instead.
+		uk_malloc_anon(size);
+	}
+#endif
+
 	return uk_do_malloc(a, size);
 }
 
@@ -204,6 +223,15 @@ static inline int uk_posix_memalign(struct uk_alloc *a, void **memptr,
 		*memptr = __NULL;
 		return ENOMEM;
 	}
+
+#ifdef CONFIG_LIBUKVMEM
+	if (size >= 16llu * 1024llu * 1024llu && align < PAGE_SIZE) {
+		// 16MB
+		// Use separate anon based alloc instead.
+		return uk_posixmemalign_anon(memptr, align, size);
+	}
+#endif
+
 	return uk_do_posix_memalign(a, memptr, align, size);
 }
 
@@ -230,6 +258,16 @@ static inline void uk_do_free(struct uk_alloc *a, void *ptr)
 
 static inline void uk_free(struct uk_alloc *a, void *ptr)
 {
+#ifdef CONFIG_LIBUKVMEM
+	long* p = (long*) ptr;
+	if (p && PAGE_ALIGN_DOWN ((__vaddr_t)p) != (__vaddr_t)p) {
+		if (*(p - 1) == -1){
+			uk_free_anon(p);
+			return;
+		}
+	}
+#endif
+
 	uk_do_free(a, ptr);
 }
 
