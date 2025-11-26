@@ -4,7 +4,7 @@
 #include "virtio_accel-common.h"
 
 static int virtaccel_prepare_args(struct virtio_accel_arg **vargs,
-		struct accel_arg *user_arg, uint32_t nr_args)
+		struct accel_arg *user_arg, uint32_t nr_args, void *buf)
 {
 	struct accel_arg *args;
 	struct virtio_accel_arg *v;
@@ -15,7 +15,8 @@ static int virtaccel_prepare_args(struct virtio_accel_arg **vargs,
 		return 0;
 	}
 
-	v = kzalloc_node(nr_args * sizeof(*v));
+	v = buf;
+    buf += ALIGN_UP(nr_args * sizeof(struct virtio_accel_arg) + 8, 16);
 	if (!v)
 		return -ENOMEM;
 
@@ -24,21 +25,13 @@ static int virtaccel_prepare_args(struct virtio_accel_arg **vargs,
 	for (i = 0; i < nr_args; ++i) {
 		v[i].len = args[i].len;
 		v[i].usr_buf = args[i].buf;
-		v[i].buf = kzalloc_node(args[i].len);;
-		if (!v[i].buf)
-			goto free_vargs_buf;
+		v[i].buf = buf;
+        buf += ALIGN_UP(args[i].len + 8, 16);
 	}
 
 	*vargs = v;
 
 	return nr_args + 1;
-
-free_vargs_buf:
-	nr_args = i;
-	for (i = 0; i < nr_args; ++i)
-		kfree_node(v[i].buf);
-	kfree_node(v);
-	return -ENOMEM;
 }
 
 static int virtaccel_copy_args(struct virtio_accel_arg *vargs, uint32_t nr_args)
@@ -49,19 +42,6 @@ static int virtaccel_copy_args(struct virtio_accel_arg *vargs, uint32_t nr_args)
 		memcpy(vargs[i].buf, vargs[i].usr_buf, vargs[i].len);
 
 	return 0;
-}
-
-static void virtaccel_cleanup_args(struct virtio_accel_arg *vargs, u32 nr_args)
-{
-	unsigned int i;
-
-	if (!vargs)
-		return;
-
-	for (i = 0; i < nr_args; ++i)
-		kfree_node(vargs[i].buf);
-
-	kfree_node(vargs);
 }
 
 static int virtaccel_prepare_request(uint32_t op_type,
@@ -76,15 +56,30 @@ static int virtaccel_prepare_request(uint32_t op_type,
 	virtio->op.in_nr = op->in_nr;
 	virtio->op.out_nr = op->out_nr;
 
+    size_t in_len = virtio->op.in_nr > 0 ? ALIGN_UP(virtio->op.in_nr * sizeof(struct virtio_accel_arg) + 8, 16) : 0;
+
+    for (int i = 0; i < virtio->op.in_nr; ++i) {
+        in_len += ALIGN_UP(usr_sess->op.in[i].len + 8, 16);
+    }
+
+    size_t out_len = ALIGN_UP(virtio->op.out_nr * sizeof(struct virtio_accel_arg) + 8, 16);
+
+    for (int i = 0; i < virtio->op.out_nr; ++i) {
+        out_len += ALIGN_UP(usr_sess->op.out[i].len + 8, 16);
+    }
+
+    __u8* buf = kzalloc_node(in_len + out_len);
+    if (!buf) return -ENOMEM;
+
 	ret = virtaccel_prepare_args(&virtio->op.in, usr_sess->op.in,
-			virtio->op.in_nr);
+			virtio->op.in_nr, buf);
 	if (ret < 0)
 		return ret;
 
 	total_sgs += ret;
 
 	ret = virtaccel_prepare_args(&virtio->op.out, usr_sess->op.out,
-			virtio->op.out_nr);
+			virtio->op.out_nr, buf + in_len);
 	if (ret < 0)
 		goto free_in;
 
@@ -97,9 +92,8 @@ static int virtaccel_prepare_request(uint32_t op_type,
 	return total_sgs;
 
 free_out:
-	virtaccel_cleanup_args(virtio->op.out, virtio->op.out_nr);
 free_in:
-	virtaccel_cleanup_args(virtio->op.in, virtio->op.in_nr);
+    kfree_node(buf);
 	return ret;
 }
 
@@ -201,7 +195,7 @@ void virtaccel_handle_req_result(struct virtio_accel_req *req)
 		uk_pr_err("hadle req: invalid op returned\n");
 		req->ret = -EBADMSG;
 		break;
-	}	
+	}
 }
 
 void virtaccel_clear_req(struct virtio_accel_req *req)
@@ -212,8 +206,8 @@ void virtaccel_clear_req(struct virtio_accel_req *req)
 	case VIRTIO_ACCEL_CREATE_SESSION:
 	case VIRTIO_ACCEL_DO_OP:
 		uk_pr_debug("clear req create/op session\n");
-		virtaccel_cleanup_args(h->op.out, h->op.out_nr);
-		virtaccel_cleanup_args(h->op.in, h->op.in_nr);
+		if (h->op.in) kfree_node(h->op.in);
+		else if (h->op.out) kfree_node(h->op.out);
 		break;
 	case VIRTIO_ACCEL_DESTROY_SESSION:
 		uk_pr_debug(" clear req gen create/destroy session\n");

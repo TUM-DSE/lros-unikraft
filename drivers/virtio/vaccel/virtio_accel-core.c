@@ -11,6 +11,12 @@
 #include <uk/sglist.h>
 #include <uk/plat/spinlock.h>
 
+#include <uk/config.h>
+#ifdef CONFIG_LIBUKVMEM
+#include <uk/vmem.h>
+#include <uk/falloc.h>
+#endif
+
 #include <accel.h>
 #include "virtio_accel-common.h"
 
@@ -19,12 +25,43 @@ static struct uk_alloc *a;
 
 void *kzalloc_node(ssize_t s)
 {
+#ifdef CONFIG_LIBUKVMEM
+    s = PAGE_ALIGN_UP(s + 16);
+    struct uk_vas *vas = uk_vas_get_active();
+    __paddr_t paddr = uk_falloc(vas->pt->fa, s >> PAGE_SHIFT);
+    __vaddr_t vaddr = __VADDR_ANY;
+
+	if (unlikely(paddr == __PADDR_INV))
+		return NULL;
+
+	int rc = uk_vma_map_dma(vas, &vaddr, s,
+			    PAGE_ATTR_PROT_RW, UK_VMA_MAP_POPULATE,
+			    "virtio-accel-buf", paddr);
+	if (unlikely(rc))
+    {
+        uk_ffree(vas->pt->fa, paddr, s >> PAGE_SHIFT);
+        return NULL;
+    }
+
+    *((size_t*) vaddr) = s;
+    *((__paddr_t*) (vaddr + 8)) = paddr;
+    return (void*)(vaddr + 16);
+#endif
 	return uk_zalloc(a, s);
 }
 
 void kfree_node(void *p)
 {
-	return uk_free(a, p);
+#ifdef CONFIG_LIBUKVMEM
+    struct uk_vas *vas = uk_vas_get_active();
+    size_t* sp = ((size_t*) p) - 2;
+    size_t s = *sp;
+    __paddr_t paddr = *(((__paddr_t*) p) - 1);
+    uk_vma_unmap(uk_vas_get_active(), (__vaddr_t) sp, s, 0);
+    uk_ffree(vas->pt->fa, paddr, s >> PAGE_SHIFT);
+    return;
+#endif
+    return uk_free(a, p);
 }
 
 int vaccel_send_request_destroy(struct virtio_accel *vaccel, struct virtio_accel_hdr *h,
@@ -55,7 +92,7 @@ int vaccel_send_request_destroy(struct virtio_accel *vaccel, struct virtio_accel
 	if (ret < 0) {
 		uk_pr_err("failed to append status in sg\n");
 		goto out_unlock;
-	}	
+	}
 	in_segs++;
 
 	ret = virtqueue_buffer_enqueue(vaccelq->vq, req, &vaccelq->sg,
@@ -67,7 +104,7 @@ out_unlock:
 
 }
 
-int vaccel_send_request_op(struct virtio_accel *vaccel, struct virtio_accel_hdr *h, 
+int vaccel_send_request_op(struct virtio_accel *vaccel, struct virtio_accel_hdr *h,
 			struct virtio_accel_req *req)
 {
 	struct virtio_accel_vq *vaccelq = vaccel->vq;
@@ -152,7 +189,7 @@ out_unlock:
 	return ret;
 }
 
-int vaccel_send_request(struct virtio_accel *vaccel, struct virtio_accel_hdr *h, 
+int vaccel_send_request(struct virtio_accel *vaccel, struct virtio_accel_hdr *h,
 			struct virtio_accel_req *req, __u32 *sid)
 {
 	struct virtio_accel_vq *vaccelq = vaccel->vq;
@@ -225,7 +262,7 @@ int vaccel_send_request(struct virtio_accel *vaccel, struct virtio_accel_hdr *h,
 	if (ret < 0) {
 		uk_pr_err("failed to append status in sg\n");
 		goto out_unlock;
-	}	
+	}
 	in_segs++;
 
 	uk_pr_debug("out_sgs = %lu, in sgs = %lu\n", out_segs, in_segs);
@@ -270,7 +307,7 @@ static int virtaccel_dataq_callback(struct virtqueue *vq, void *priv)
 		default:
 			req->ret = -EIO;
 			break;
-		}	
+		}
 		ukarch_spin_unlock(&vaccelq->lock);
 		uk_waitq_wake_up(&req->completion);
 		ukarch_spin_lock(&vaccelq->lock);
