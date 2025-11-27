@@ -68,7 +68,7 @@ int virtio_destroy_mem(struct vaccel_session *sess, vaccel_matmul_ctx ctx,
 	struct accel_arg args[3] = {
 	    { sizeof(op_type), (unsigned char *)&op_type, NULL, 0, {0} },
 	    { sizeof(vaccel_matmul_ctx), (unsigned char *)&ctx, NULL, 0, {0} },
-	    { sizeof(vaccel_tensor_mem), (unsigned char *)&mem, NULL, 0, {0} },
+	    { sizeof(vaccel_tensor_mem), (unsigned char *)mem, NULL, 0, {0} },
 	};
 
 	vsess.id = sess->session_id;
