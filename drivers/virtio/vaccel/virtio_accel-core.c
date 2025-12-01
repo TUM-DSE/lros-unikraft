@@ -15,6 +15,7 @@
 #ifdef CONFIG_LIBUKVMEM
 #include <uk/vmem.h>
 #include <uk/falloc.h>
+#include <uk/bitops/bitscan.h>
 #endif
 
 #include <accel.h>
@@ -23,29 +24,61 @@
 #define DRIVER_NAME	"vaccel"
 static struct uk_alloc *a;
 
-void *kzalloc_node(ssize_t s)
+static void* alloc_base = NULL;
+static size_t alloc_size = 0;
+static __paddr_t alloc_paddr = __PADDR_INV;
+static bool alloc_inuse = false;
+
+
+static void virtio_accel_free_buf(struct uk_term_ctx *ctx __unused) {
+	UK_ASSERT(!alloc_inuse);
+	if (alloc_base != NULL) {
+		uk_vma_unmap(uk_vas_get_active(), (__vaddr_t) alloc_base, alloc_size, 0);
+	}
+	if (alloc_paddr != __PADDR_INV) {
+		struct uk_vas *vas = uk_vas_get_active();
+		uk_ffree(vas->pt->fa, alloc_paddr, alloc_size >> PAGE_SHIFT);
+	}
+}
+
+
+void *kzalloc_node(size_t s)
 {
-#ifdef CONFIG_LIBUKVMEM
-    s = PAGE_ALIGN_UP(s + 16);
-    struct uk_vas *vas = uk_vas_get_active();
-    __paddr_t paddr = uk_falloc(vas->pt->fa, s >> PAGE_SHIFT);
-    __vaddr_t vaddr = __VADDR_ANY;
-
-	if (unlikely(paddr == __PADDR_INV))
+	if (s == 0) {
 		return NULL;
+	}
+#ifdef CONFIG_LIBUKVMEM
+	UK_ASSERT(!alloc_inuse);
 
-	int rc = uk_vma_map_dma(vas, &vaddr, s,
-			    PAGE_ATTR_PROT_RW, UK_VMA_MAP_POPULATE,
-			    "virtio-accel-buf", paddr);
-	if (unlikely(rc))
-    {
-        uk_ffree(vas->pt->fa, paddr, s >> PAGE_SHIFT);
-        return NULL;
-    }
+	if (alloc_size < s) {
+		virtio_accel_free_buf(NULL);
 
-    *((size_t*) vaddr) = s;
-    *((__paddr_t*) (vaddr + 8)) = paddr;
-    return (void*)(vaddr + 16);
+		s = 1ull << (MAX(uk_mssbl(s - 1) + 1, (unsigned) PAGE_SHIFT));
+
+		struct uk_vas *vas = uk_vas_get_active();
+		__paddr_t paddr = uk_falloc(vas->pt->fa, s >> PAGE_SHIFT);
+		__vaddr_t vaddr = __VADDR_ANY;
+
+		if (unlikely(paddr == __PADDR_INV))
+			return NULL;
+
+		int rc = uk_vma_map_dma(vas, &vaddr, s,
+				    PAGE_ATTR_PROT_RW, UK_VMA_MAP_POPULATE,
+				    "virtio-accel-buf", paddr);
+		if (unlikely(rc))
+		{
+			uk_ffree(vas->pt->fa, paddr, s >> PAGE_SHIFT);
+			return NULL;
+		}
+
+		alloc_size = s;
+		alloc_paddr = paddr;
+		alloc_base = (void*)vaddr;
+	}
+
+	alloc_inuse = true;
+
+	return alloc_base;
 #endif
 	return uk_zalloc(a, s);
 }
@@ -53,13 +86,9 @@ void *kzalloc_node(ssize_t s)
 void kfree_node(void *p)
 {
 #ifdef CONFIG_LIBUKVMEM
-    struct uk_vas *vas = uk_vas_get_active();
-    size_t* sp = ((size_t*) p) - 2;
-    size_t s = *sp;
-    __paddr_t paddr = *(((__paddr_t*) p) - 1);
-    uk_vma_unmap(uk_vas_get_active(), (__vaddr_t) sp, s, 0);
-    uk_ffree(vas->pt->fa, paddr, s >> PAGE_SHIFT);
-    return;
+	UK_ASSERT(alloc_inuse);
+	alloc_inuse = false;
+	return;
 #endif
     return uk_free(a, p);
 }
@@ -481,3 +510,5 @@ static struct virtio_driver vaccel_drv = {
 };
 
 VIRTIO_BUS_REGISTER_DRIVER(&vaccel_drv);
+
+uk_sys_initcall(0x0, virtio_accel_free_buf);

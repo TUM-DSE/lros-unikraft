@@ -58,18 +58,18 @@ static int virtaccel_prepare_request(uint32_t op_type,
 
     size_t in_len = virtio->op.in_nr > 0 ? ALIGN_UP(virtio->op.in_nr * sizeof(struct virtio_accel_arg) + 8, 16) : 0;
 
-    for (int i = 0; i < virtio->op.in_nr; ++i) {
+    for (__virtio32 i = 0; i < virtio->op.in_nr; ++i) {
         in_len += ALIGN_UP(usr_sess->op.in[i].len + 8, 16);
     }
 
-    size_t out_len = ALIGN_UP(virtio->op.out_nr * sizeof(struct virtio_accel_arg) + 8, 16);
+    size_t out_len = virtio->op.out_nr > 0 ? ALIGN_UP(virtio->op.out_nr * sizeof(struct virtio_accel_arg) + 8, 16) : 0;
 
-    for (int i = 0; i < virtio->op.out_nr; ++i) {
+    for (__virtio32 i = 0; i < virtio->op.out_nr; ++i) {
         out_len += ALIGN_UP(usr_sess->op.out[i].len + 8, 16);
     }
 
     __u8* buf = kzalloc_node(in_len + out_len);
-    if (!buf) return -ENOMEM;
+    if ((in_len + out_len) && !buf) return -ENOMEM;
 
 	ret = virtaccel_prepare_args(&virtio->op.in, usr_sess->op.in,
 			virtio->op.in_nr, buf);

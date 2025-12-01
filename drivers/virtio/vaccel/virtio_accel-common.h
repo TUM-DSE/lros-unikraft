@@ -41,11 +41,11 @@ int virtaccel_req_operation(struct virtio_accel_req *req);
 void virtaccel_clear_req(struct virtio_accel_req *req);
 void virtaccel_handle_req_result(struct virtio_accel_req *req);
 
-void *kzalloc_node(ssize_t s);
+void *kzalloc_node(size_t s);
 void kfree_node(void *p);
-int vaccel_send_request(struct virtio_accel *, struct virtio_accel_hdr *, 
+int vaccel_send_request(struct virtio_accel *, struct virtio_accel_hdr *,
 			struct virtio_accel_req *, __u32 *);
-int vaccel_send_request_op(struct virtio_accel *, struct virtio_accel_hdr *, 
+int vaccel_send_request_op(struct virtio_accel *, struct virtio_accel_hdr *,
 			struct virtio_accel_req *);
 int vaccel_send_request_destroy(struct virtio_accel *, struct virtio_accel_hdr *,
 			struct virtio_accel_req *);
