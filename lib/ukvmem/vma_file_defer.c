@@ -22,6 +22,15 @@
 #include <vfscore/vnode.h>
 #include <vfscore/uio.h>
 
+
+#include <uk/libparam.h>
+static __sz buf_size = 64LLU;
+
+UK_LIBPARAM_PARAM_ALIAS(prefetch_size, &buf_size, __uptr,
+			"size of the prefetch buffer (in MB)");
+
+
+
 static __noreturn void defer_file_load(void *data)
 {
 	/*
@@ -37,6 +46,8 @@ static __noreturn void defer_file_load(void *data)
 	__vaddr_t buf = args->buf;
 	__sz buf_len = ALIGN_DOWN(args->buf_len, block_size);
 	__off offset = ALIGN_DOWN(args->offset, block_size);
+
+	__sz pop_blocks = 0;
 
 	for (__sz off_file = 0, off_buf = 0;; off_file += block_size,
 		  off_file %= len, off_buf += block_size, off_buf %= buf_len) {
@@ -59,7 +70,7 @@ static __noreturn void defer_file_load(void *data)
 
 		if (arr[off_file / block_size] >= 0) {
 			// Already there
-			if (len <= buf_len) {
+			if (pop_blocks >= len/block_size) {
 				if (args->waiting_thread)
 					uk_thread_wake(args->waiting_thread);
 				uk_thread_exit();
@@ -74,6 +85,7 @@ static __noreturn void defer_file_load(void *data)
 
 		if (prev >= 0) {
 			arr[prev / block_size] = -1;
+			pop_blocks--;
 			// Unmap
 			__vaddr_t vaddr =
 			    prev ? args->start - (args->offset % block_size) + prev
@@ -92,6 +104,8 @@ static __noreturn void defer_file_load(void *data)
 		arr[off_file / block_size] = off_buf;
 
 		arr_p[off_buf / block_size] = off_file;
+
+		pop_blocks++;
 
 		if (args->waiting_thread)
 		{
@@ -133,7 +147,7 @@ int vma_op_file_defer_new(struct uk_vas *vas, __vaddr_t vaddr, __sz len,
 		return -ENOMEM;
 
 	__sz block_size = 2 * 1024lu * 1024lu; // 2 MB
-	__sz buf_len = 512LLU * 1024LLU * 1024LLU;
+	__sz buf_len = buf_size * 1024LLU * 1024LLU;
 	__sz arr_len = sizeof(__off) * ALIGN_UP(len, block_size) / block_size;
 	__sz arr_p_len = sizeof(__off) * buf_len / block_size;
 
