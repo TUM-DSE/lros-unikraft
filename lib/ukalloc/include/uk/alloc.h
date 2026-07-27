@@ -166,7 +166,12 @@ static inline void *uk_malloc(struct uk_alloc *a, __sz size)
 	if (size >= 16llu * 1024llu * 1024llu) {
 		// 16MB
 		// Use separate anon based alloc instead.
-		uk_malloc_anon(size);
+		// On mapping failure fall through to the allocator, which may
+		// still be able to serve the request (or fail with ENOMEM).
+		void *ptr = uk_malloc_anon(size);
+
+		if (likely(ptr))
+			return ptr;
 	}
 #endif
 
