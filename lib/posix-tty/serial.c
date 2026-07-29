@@ -115,19 +115,27 @@ static ssize_t serial_read(const struct uk_file *f,
 		if (unlikely(bytes_read < 0))
 			return bytes_read;
 
-		total += bytes_read;
-
 		last = buf + bytes_read - 1;
 		if (*last == '\r')
 			*last = '\n';
+
+		/* EOT ends the input stream; strip it so readers get EOF
+		 * instead of a stray control byte
+		 */
+		if (*last == SERIAL_EOT) {
+			uk_file_event_clear(f, UKFD_POLLIN);
+			if (!--bytes_read)
+				break;
+			last--;
+		}
+
+		total += bytes_read;
 
 		/* Echo the input to the console (NOT stdout!) */
 		_console_out(buf, bytes_read);
 
 		if (*last == '\n')
 			break;
-		if (*last == SERIAL_EOT)
-			uk_file_event_clear(f, UKFD_POLLIN);
 	}
 
 	if (total || !uk_file_poll_immediate(f, UKFD_POLLIN))
