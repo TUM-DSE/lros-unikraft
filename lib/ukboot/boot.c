@@ -512,6 +512,17 @@ int do_main(int argc, char *argv[])
 	uk_pr_info("])\n");
 #endif /* CONFIG_LIBUKDEBUG_PRINTK_INFO */
 
+#ifdef __aarch64__
+	/* Boot time event 250 ("Unikraft: init end"), recorded on the host via
+	 * the kvm_hvc_arm64 tracepoint (see benchmarks/boottime).
+	 */
+	{
+		register unsigned long x0 __asm__("x0") = 250;
+
+		__asm__ __volatile__("hvc %0" : : "i"(0x42), "r"(x0) : "memory");
+	}
+#endif /* __aarch64__ */
+
 	ret = main(argc, argv);
 	uk_pr_info("main returned %d\n", ret);
 	return ret;
